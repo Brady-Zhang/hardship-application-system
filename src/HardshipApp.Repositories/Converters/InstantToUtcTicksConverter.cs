@@ -3,21 +3,9 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HardshipApp.Repositories.Converters;
 
 /// <summary>
-/// Stores an instant as UTC ticks.
+/// Stores an instant as UTC ticks. SQLite refuses to order by a DateTimeOffset, and storing
+/// a DateTime instead loses the kind and is then read as local time by the browser.
 /// </summary>
-/// <remarks>
-/// The same problem as money, for the same reason. SQLite stores a
-/// <see cref="DateTimeOffset"/> as text and then refuses to order by it at all —
-/// "SQLite does not support expressions of type 'DateTimeOffset' in ORDER BY clauses" — so a
-/// list sorted newest first could only have been sorted in the client, after fetching every
-/// row.
-/// <para>
-/// Storing a <see cref="DateTime"/> instead would sort, but it loses the offset and comes back
-/// with <see cref="DateTimeKind.Unspecified"/>, which serialises without a 'Z' and is then
-/// read by the browser as local time. Ticks keep full precision, sort as integers, and leave
-/// no room for a timezone to be guessed.
-/// </para>
-/// </remarks>
 public sealed class InstantToUtcTicksConverter : ValueConverter<DateTimeOffset, long>
 {
     public InstantToUtcTicksConverter()

@@ -18,9 +18,7 @@ if (app.Environment.IsDevelopment())
 }
 else
 {
-    // Development only serves HTTP, and the Vite dev server proxies to it. Redirecting
-    // to HTTPS locally would turn every proxied API call into a 307 the proxy cannot
-    // follow, so this is on everywhere except the environment that would break.
+    // Off in development: the Vite proxy cannot follow the 307.
     app.UseHttpsRedirection();
 }
 

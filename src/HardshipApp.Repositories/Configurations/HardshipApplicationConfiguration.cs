@@ -11,9 +11,7 @@ internal sealed class HardshipApplicationConfiguration : IEntityTypeConfiguratio
     {
         builder.ToTable("HardshipApplications", table =>
         {
-            // The database refuses a negative amount even if a future caller bypasses
-            // validation. A *deficit* is legitimate and is not constrained here — only a
-            // negative income or a negative expense figure, which cannot be meant.
+            // A deficit is allowed; a negative income or expense figure is not.
             table.HasCheckConstraint("CK_HardshipApplications_MonthlyIncome", "\"MonthlyIncome\" >= 0");
             table.HasCheckConstraint("CK_HardshipApplications_MonthlyExpenses", "\"MonthlyExpenses\" >= 0");
         });
@@ -45,12 +43,9 @@ internal sealed class HardshipApplicationConfiguration : IEntityTypeConfiguratio
         builder.Property(application => application.UpdatedAt)
             .HasConversion<InstantToUtcTicksConverter>();
 
-        // Derived from the two figures above, so there is nothing to store and nothing that
-        // could disagree with them.
         builder.Ignore(application => application.MonthlySurplus);
         builder.Ignore(application => application.IsInDeficit);
 
-        // The list is shown newest first.
         builder.HasIndex(application => application.CreatedAt);
     }
 }

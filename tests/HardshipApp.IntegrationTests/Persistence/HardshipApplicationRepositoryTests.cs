@@ -35,7 +35,6 @@ public class HardshipApplicationRepositoryTests
         await database.NewRepository().AddAsync(application);
         HardshipApplication? stored = await database.NewRepository().FindAsync(application.Id);
 
-        // The point of storing money as integer cents: what went in is what comes back.
         Assert.Equal(3087.10m, stored!.MonthlySurplus);
     }
 
@@ -50,7 +49,6 @@ public class HardshipApplicationRepositoryTests
         await database.NewRepository().AddAsync(application);
         HardshipApplication? stored = await database.NewRepository().FindAsync(application.Id);
 
-        // Spending more than you earn is the situation this system records, not an error.
         Assert.Equal(-1600m, stored!.MonthlySurplus);
         Assert.True(stored.IsInDeficit);
     }
@@ -115,8 +113,7 @@ public class HardshipApplicationRepositoryTests
         HardshipApplication application = AnApplication();
         application.MonthlyIncome = -1m;
 
-        // Validation stops this long before here. The check constraint is the backstop for
-        // the day a new write path forgets to validate.
+        // The check constraint is the backstop for a write path that skips validation.
         await Assert.ThrowsAsync<DbUpdateException>(
             () => database.NewRepository().AddAsync(application));
     }
