@@ -16,7 +16,7 @@ public class CreateApplicationTests : IClassFixture<HardshipApiFactory>
     [Fact]
     public async Task Post_WithValidApplication_ReturnsCreatedAndPersistsRecord()
     {
-        CreateHardshipApplicationRequest request = AValidRequest();
+        HardshipApplicationRequest request = AValidRequest();
 
         HttpResponseMessage response = await _client.PostAsJsonAsync("/api/applications", request);
 
@@ -43,7 +43,7 @@ public class CreateApplicationTests : IClassFixture<HardshipApiFactory>
     [Fact]
     public async Task Post_ReturnsTheSurplusComputedByTheServer()
     {
-        CreateHardshipApplicationRequest request = AValidRequest() with
+        HardshipApplicationRequest request = AValidRequest() with
         {
             MonthlyIncome = 4321.55m,
             MonthlyExpenses = 1234.45m,
@@ -60,7 +60,7 @@ public class CreateApplicationTests : IClassFixture<HardshipApiFactory>
     [Fact]
     public async Task Post_AcceptsAnApplicantSpendingMoreThanTheyEarn()
     {
-        CreateHardshipApplicationRequest request = AValidRequest() with
+        HardshipApplicationRequest request = AValidRequest() with
         {
             MonthlyIncome = 2500m,
             MonthlyExpenses = 4100m,
@@ -78,7 +78,7 @@ public class CreateApplicationTests : IClassFixture<HardshipApiFactory>
     [Fact]
     public async Task Post_WithNoCustomerName_ReturnsFieldLevelValidationErrors()
     {
-        CreateHardshipApplicationRequest request = AValidRequest() with { CustomerName = "" };
+        HardshipApplicationRequest request = AValidRequest() with { CustomerName = "" };
 
         HttpResponseMessage response = await _client.PostAsJsonAsync("/api/applications", request);
 
@@ -126,7 +126,7 @@ public class CreateApplicationTests : IClassFixture<HardshipApiFactory>
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
-    private static CreateHardshipApplicationRequest AValidRequest() => new(
+    private static HardshipApplicationRequest AValidRequest() => new(
         CustomerName: "Alex Taylor",
         DateOfBirth: new DateOnly(1990, 4, 17),
         MonthlyIncome: 5000m,

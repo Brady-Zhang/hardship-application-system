@@ -3,12 +3,12 @@ using HardshipApp.Api.Contracts;
 
 namespace HardshipApp.Api.Validation;
 
-public sealed class CreateHardshipApplicationRequestValidator
-    : AbstractValidator<CreateHardshipApplicationRequest>
+public sealed class HardshipApplicationRequestValidator
+    : AbstractValidator<HardshipApplicationRequest>
 {
     public const int MinimumAge = 18;
 
-    public CreateHardshipApplicationRequestValidator(TimeProvider clock)
+    public HardshipApplicationRequestValidator(TimeProvider clock)
     {
         RuleFor(request => request.CustomerName)
             .NotEmpty().WithMessage("Customer name is required.")

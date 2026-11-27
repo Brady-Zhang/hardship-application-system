@@ -1,6 +1,6 @@
 namespace HardshipApp.Api.Contracts;
 
-public sealed record CreateHardshipApplicationRequest(
+public sealed record HardshipApplicationRequest(
     string CustomerName,
     DateOnly DateOfBirth,
     decimal MonthlyIncome,
