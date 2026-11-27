@@ -1,0 +1,28 @@
+# .NET
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+*.user
+*.suo
+.vs/
+
+# Local database (SQLite)
+*.db
+*.db-shm
+*.db-wal
+
+# Node
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Secrets / local config
+.env
+.env.*
+!.env.example
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
