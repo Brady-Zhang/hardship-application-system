@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  api:
+    name: API (build + test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - run: dotnet restore
+
+      # Warnings fail the build: an unused variable or a nullable violation is a
+      # review comment nobody should have to write.
+      - run: dotnet build --no-restore --configuration Release -warnaserror
+
+      - run: dotnet test --no-build --configuration Release --verbosity normal
+
+  web:
+    name: Web (typecheck + build + test)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - run: npm ci
+
+      # The type-safety requirement, enforced rather than asserted: the generated
+      # API types are checked against every call site on every push.
+      - run: npm run typecheck
+
+      - run: npm run lint
+
+      - run: npm run build
+
+      - run: npm test

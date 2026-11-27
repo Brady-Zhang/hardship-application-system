@@ -1,0 +1,14 @@
+<Project>
+
+  <!--
+    Shared across every project, so a new project cannot accidentally target a
+    different framework or run without nullable reference types.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+</Project>

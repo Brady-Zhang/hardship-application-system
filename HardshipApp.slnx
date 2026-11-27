@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/HardshipApp.Api/HardshipApp.Api.csproj" />
+    <Project Path="src/HardshipApp.Models/HardshipApp.Models.csproj" />
+    <Project Path="src/HardshipApp.Repositories/HardshipApp.Repositories.csproj" />
+    <Project Path="src/HardshipApp.Services/HardshipApp.Services.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/HardshipApp.IntegrationTests/HardshipApp.IntegrationTests.csproj" />
+    <Project Path="tests/HardshipApp.UnitTests/HardshipApp.UnitTests.csproj" />
+  </Folder>
+</Solution>
