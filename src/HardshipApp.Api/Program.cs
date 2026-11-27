@@ -1,7 +1,14 @@
+using HardshipApp.Api;
+using HardshipApp.Repositories;
+
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+
+builder.Services.AddPersistence(
+    builder.Configuration.GetConnectionString("Default")
+        ?? throw new InvalidOperationException("Connection string 'Default' is not configured."));
 
 WebApplication app = builder.Build();
 
@@ -19,4 +26,6 @@ else
 
 app.MapControllers();
 
-app.Run();
+await app.ApplyMigrationsAsync();
+
+await app.RunAsync();
