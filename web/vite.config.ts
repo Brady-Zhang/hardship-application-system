@@ -8,7 +8,7 @@ export default defineConfig({
     // development. Keeps CORS out of the picture entirely.
     proxy: {
       '/api': {
-        target: 'http://localhost:5223',
+        target: 'http://localhost:5080',
         changeOrigin: true,
       },
     },

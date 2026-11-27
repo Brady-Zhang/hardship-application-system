@@ -21,7 +21,7 @@ Nothing else — no Docker, no database server to install. See
 Two terminals.
 
 ```bash
-# 1. API — http://localhost:5223 (OpenAPI at /openapi/v1.json)
+# 1. API — http://localhost:5080 (OpenAPI at /openapi/v1.json)
 dotnet run --project src/HardshipApp.Api
 ```
 
