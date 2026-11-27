@@ -85,7 +85,7 @@ describe('applicationsApi', () => {
       'fetch',
       vi.fn().mockResolvedValue({
         ok: false,
-        status: 502,
+        status: 500,
         json: async () => {
           throw new SyntaxError('Unexpected token < in JSON')
         },
@@ -94,8 +94,19 @@ describe('applicationsApi', () => {
 
     const error = (await applicationsApi.list().catch((caught: unknown) => caught)) as ApiError
 
-    expect(error.status).toBe(502)
+    expect(error.status).toBe(500)
     expect(error.message).toContain('Something went wrong')
+  })
+
+  it('treats a gateway status as the server being unreachable', async () => {
+    // The dev proxy answers 502 when the API is not running, so fetch resolves rather
+    // than throwing, and the raw status would otherwise be shown to the user.
+    respondWith({}, 502)
+
+    const error = (await applicationsApi.list().catch((caught: unknown) => caught)) as ApiError
+
+    expect(error.status).toBe(502)
+    expect(error.message).toContain('Could not reach the server')
   })
 
   it('reports an unreachable server rather than throwing a fetch error', async () => {
