@@ -46,3 +46,33 @@ jobs:
       - run: npm run build
 
       - run: npm test
+
+  contract:
+    name: API types are in step with the API
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      # Building the API rewrites openapi/, and this regenerates the client types from it.
+      # If either differs from what was committed, someone changed a DTO without
+      # regenerating, and the front end is compiling against a contract that no longer holds.
+      - run: dotnet build src/HardshipApp.Api --configuration Release
+
+      - run: npm ci
+        working-directory: web
+
+      - run: npm run api:types
+        working-directory: web
+
+      - name: Fail if the generated contract is out of date
+        run: git diff --exit-code -- openapi web/src/api/schema.d.ts

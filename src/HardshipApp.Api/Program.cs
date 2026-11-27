@@ -12,7 +12,7 @@ builder.Services
     .AddControllers(options => options.Filters.Add<ValidationFilter>())
     .ConfigureApiBehaviorOptions(options =>
         options.InvalidModelStateResponseFactory = ModelBindingProblems.ToProblem);
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(options => options.AddSchemaTransformer<DecimalSchemaTransformer>());
 
 builder.Services.AddProblemDetails();
 builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
