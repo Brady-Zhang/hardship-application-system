@@ -6,8 +6,7 @@ A small full-stack application for recording and updating financial hardship
 applications: a React/TypeScript front end, an ASP.NET Core Web API, and a
 relational database.
 
-> **Status:** in progress. The domain, persistence and the create endpoint are in; the
-> remaining endpoints and the UI arrive in the branches that follow.
+> **Status:** in progress. The API is complete; the UI arrives in the branches that follow.
 
 ## Prerequisites
 
@@ -74,6 +73,24 @@ web/                          React + TypeScript (Vite)
 The layering is enforced by project references rather than by convention:
 `HardshipApp.Repositories` cannot reference `HardshipApp.Api`, so the dependency
 direction cannot rot as the code grows.
+
+## API
+
+| | |
+|---|---|
+| `GET /api/applications` | every application, newest first |
+| `GET /api/applications/{id}` | one application, or 404 |
+| `POST /api/applications` | creates one; 201 with a `Location` header |
+| `PUT /api/applications/{id}` | replaces one, or 404 |
+
+`POST` and `PUT` take the same body, and there is one request type and one validator behind
+both: the fields a caller may set are identical today. They split the day they differ —
+until then two near-identical records would be two places to change a rule and one place to
+forget.
+
+The response carries `monthlySurplus` and `isInDeficit` alongside the figures they come from,
+so the number on screen is the one the server computed rather than one the browser worked
+out again.
 
 ## Error handling
 

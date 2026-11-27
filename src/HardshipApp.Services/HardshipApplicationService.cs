@@ -6,6 +6,9 @@ namespace HardshipApp.Services;
 internal sealed class HardshipApplicationService(IHardshipApplicationRepository repository)
     : IHardshipApplicationService
 {
+    public Task<IReadOnlyList<HardshipApplication>> ListAsync(CancellationToken cancellationToken = default) =>
+        repository.ListAsync(cancellationToken);
+
     public async Task<HardshipApplication> CreateAsync(
         HardshipApplication application,
         CancellationToken cancellationToken = default)
@@ -20,4 +23,13 @@ internal sealed class HardshipApplicationService(IHardshipApplicationRepository 
 
     public Task<HardshipApplication?> FindAsync(Guid id, CancellationToken cancellationToken = default) =>
         repository.FindAsync(id, cancellationToken);
+
+    public async Task<HardshipApplication> UpdateAsync(
+        HardshipApplication application,
+        CancellationToken cancellationToken = default)
+    {
+        await repository.UpdateAsync(application, cancellationToken);
+
+        return application;
+    }
 }
