@@ -18,8 +18,6 @@ jobs:
 
       - run: dotnet restore
 
-      # Warnings fail the build: an unused variable or a nullable violation is a
-      # review comment nobody should have to write.
       - run: dotnet build --no-restore --configuration Release -warnaserror
 
       - run: dotnet test --no-build --configuration Release --verbosity normal
@@ -41,8 +39,6 @@ jobs:
 
       - run: npm ci
 
-      # The type-safety requirement, enforced rather than asserted: the generated
-      # API types are checked against every call site on every push.
       - run: npm run typecheck
 
       - run: npm run lint

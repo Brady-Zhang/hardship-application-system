@@ -4,4 +4,8 @@
     <ProjectReference Include="..\HardshipApp.Models\HardshipApp.Models.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.15" />
+  </ItemGroup>
+
 </Project>
