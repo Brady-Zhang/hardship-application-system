@@ -14,7 +14,7 @@ public sealed class HardshipApplicationsController(IHardshipApplicationService a
     [ProducesResponseType<HardshipApplicationResponse>(StatusCodes.Status201Created)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Create(
-        CreateHardshipApplicationRequest request,
+        HardshipApplicationRequest request,
         CancellationToken cancellationToken)
     {
         HardshipApplication created = await applications.CreateAsync(request.ToEntity(), cancellationToken);

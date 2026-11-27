@@ -5,11 +5,11 @@ using HardshipApp.UnitTests.Support;
 
 namespace HardshipApp.UnitTests.Validation;
 
-public class CreateHardshipApplicationRequestValidatorTests
+public class HardshipApplicationRequestValidatorTests
 {
     private static readonly DateOnly Today = new(2026, 11, 28);
 
-    private readonly CreateHardshipApplicationRequestValidator _validator =
+    private readonly HardshipApplicationRequestValidator _validator =
         new(new FixedClock(new DateTimeOffset(Today, TimeOnly.MinValue, TimeSpan.Zero)));
 
     [Fact]
@@ -82,7 +82,7 @@ public class CreateHardshipApplicationRequestValidatorTests
     public void ExpensesAboveIncome_IsAccepted()
     {
         // The whole point of the form. A deficit must not be rejected.
-        CreateHardshipApplicationRequest request =
+        HardshipApplicationRequest request =
             AValidRequest() with { MonthlyIncome = 2500m, MonthlyExpenses = 4100m };
 
         _validator.TestValidate(request).ShouldNotHaveAnyValidationErrors();
@@ -102,7 +102,7 @@ public class CreateHardshipApplicationRequestValidatorTests
             .ShouldHaveValidationErrorFor(request => request.HardshipReason);
     }
 
-    private static CreateHardshipApplicationRequest AValidRequest() => new(
+    private static HardshipApplicationRequest AValidRequest() => new(
         CustomerName: "Alex Taylor",
         DateOfBirth: new DateOnly(1990, 4, 17),
         MonthlyIncome: 5000m,
