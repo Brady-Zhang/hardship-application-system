@@ -11,7 +11,7 @@
     "typecheck": "tsc -b",
     "test": "vitest run",
     "test:watch": "vitest",
-    "api:types": "openapi-typescript ../openapi/v1.json -o src/api/schema.d.ts"
+    "api:types": "openapi-typescript ../openapi/HardshipApp.Api.json -o src/api/schema.d.ts"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.108.4",

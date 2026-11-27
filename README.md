@@ -92,6 +92,34 @@ The response carries `monthlySurplus` and `isInDeficit` alongside the figures th
 so the number on screen is the one the server computed rather than one the browser worked
 out again.
 
+## Type safety across the stack
+
+There is one definition of the contract, and it is the C# one.
+
+```
+C# DTOs  →  openapi/HardshipApp.Api.json  →  web/src/api/schema.d.ts  →  the client and the UI
+            (written on build)               (npm run api:types)
+```
+
+Nothing in `web` hand-writes an API type. Change a DTO and the TypeScript either compiles
+against the new shape or fails to compile.
+
+Three things hold that up rather than relying on anyone remembering:
+
+- **The document is written on build** (`OpenApiGenerateDocumentsOnBuild`), so it cannot be a
+  stale file somebody exported once.
+- **CI regenerates and diffs.** The `contract` job builds the API, regenerates the types and
+  fails if either file differs from what was committed — so a DTO change that skipped
+  regeneration cannot merge.
+- **`tsc` runs in CI** with `strict` on, so a shape change surfaces at the call sites.
+
+Regenerate locally with:
+
+```bash
+dotnet build src/HardshipApp.Api
+cd web && npm run api:types
+```
+
 ## Error handling
 
 Every failure comes back as RFC 7807 problem details, and a 400 has the same shape whether
@@ -110,8 +138,10 @@ the request failed business validation or could not be deserialised at all:
 That matters for the front end, which maps `errors` onto form fields and needs one contract
 rather than two. Two things are deliberate:
 
-- **Field names are normalised.** The JSON binder reports `$.dateOfBirth`; the validators
-  report `DateOfBirth`. The caller sees `DateOfBirth` either way.
+- **Field names are normalised twice.** The JSON binder reports `$.dateOfBirth` and the
+  validators report `DateOfBirth`, so the API answers `DateOfBirth` either way; the web
+  client then lowercases the first letter once, centrally, so the form deals only in its own
+  field names.
 - **Serialiser messages never reach the caller.** The binder's own text names the .NET type
   it failed to construct, which is an internal detail and no help to whoever filled in the
   form. It is replaced with a readable sentence, and there is a test asserting the response
@@ -171,8 +201,12 @@ _Filled in as the implementation lands. Already settled:_
   trade-off for a reviewer and the wrong one in production, where several instances starting
   at once would race and a failed migration should fail the deployment rather than the app.
 - **The frontend's API types are generated from the API's OpenAPI document**, not
-  hand-written, so the contract exists once. `npm run typecheck` in CI fails if a
-  change to a DTO is not reflected at the call sites.
+  hand-written, so the contract exists once. See
+  [type safety across the stack](#type-safety-across-the-stack).
+- **A `decimal` is described as a plain JSON number.** ASP.NET's default schema for one is
+  `["number", "string"]`, because the serialiser will *read* a decimal from a quoted string.
+  It never writes one, so the union was inaccurate for every response and turned every money
+  field in the generated client into `number | string`. A schema transformer corrects it.
 - **Warnings are errors in CI** (`-warnaserror`, `tsc`, `oxlint`). An unused
   variable or a nullable violation should not need a review comment.
 - **TypeScript is pinned to 5.x** in `web`: `openapi-typescript` currently peers on
