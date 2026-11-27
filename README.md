@@ -6,8 +6,8 @@ A small full-stack application for recording and updating financial hardship
 applications: a React/TypeScript front end, an ASP.NET Core Web API, and a
 relational database.
 
-> **Status:** in progress. The domain and persistence are in; the API endpoints and UI
-> arrive in the branches that follow.
+> **Status:** in progress. The domain, persistence and the create endpoint are in; the
+> remaining endpoints and the UI arrive in the branches that follow.
 
 ## Prerequisites
 
@@ -74,6 +74,34 @@ web/                          React + TypeScript (Vite)
 The layering is enforced by project references rather than by convention:
 `HardshipApp.Repositories` cannot reference `HardshipApp.Api`, so the dependency
 direction cannot rot as the code grows.
+
+## Error handling
+
+Every failure comes back as RFC 7807 problem details, and a 400 has the same shape whether
+the request failed business validation or could not be deserialised at all:
+
+```json
+{
+  "type": "https://tools.ietf.org/html/rfc9110#section-15.5.1",
+  "title": "One or more validation errors occurred.",
+  "status": 400,
+  "errors": { "CustomerName": ["Customer name is required."] },
+  "traceId": "00-0e0a67ff517932bf5cb50d43817550ef-12cb32c6a2a71eee-00"
+}
+```
+
+That matters for the front end, which maps `errors` onto form fields and needs one contract
+rather than two. Two things are deliberate:
+
+- **Field names are normalised.** The JSON binder reports `$.dateOfBirth`; the validators
+  report `DateOfBirth`. The caller sees `DateOfBirth` either way.
+- **Serialiser messages never reach the caller.** The binder's own text names the .NET type
+  it failed to construct, which is an internal detail and no help to whoever filled in the
+  form. It is replaced with a readable sentence, and there is a test asserting the response
+  contains no internal names.
+
+An unhandled exception is logged in full and returned as a 500 problem details with nothing
+specific in it.
 
 ## Data model
 
