@@ -39,7 +39,11 @@ internal sealed class HardshipApplicationConfiguration : IEntityTypeConfiguratio
             .HasMaxLength(1000);
 
         builder.Property(application => application.CreatedAt)
+            .HasConversion<InstantToUtcTicksConverter>()
             .IsRequired();
+
+        builder.Property(application => application.UpdatedAt)
+            .HasConversion<InstantToUtcTicksConverter>();
 
         // Derived from the two figures above, so there is nothing to store and nothing that
         // could disagree with them.

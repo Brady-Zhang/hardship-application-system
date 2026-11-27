@@ -6,7 +6,8 @@ A small full-stack application for recording and updating financial hardship
 applications: a React/TypeScript front end, an ASP.NET Core Web API, and a
 relational database.
 
-> **Status:** scaffold. The domain, API and UI arrive in the branches that follow.
+> **Status:** in progress. The domain and persistence are in; the API endpoints and UI
+> arrive in the branches that follow.
 
 ## Prerequisites
 
@@ -21,7 +22,7 @@ Nothing else — no Docker, no database server to install. See
 Two terminals.
 
 ```bash
-# 1. API — http://localhost:5080 (OpenAPI at /openapi/v1.json)
+# 1. API — http://localhost:5180 (OpenAPI at /openapi/v1.json)
 dotnet run --project src/HardshipApp.Api
 ```
 
@@ -78,6 +79,26 @@ direction cannot rot as the code grows.
 
 _Filled in as the implementation lands. Already settled:_
 
+- **Money is stored as a whole number of cents.** SQLite has no decimal type; left alone,
+  EF Core stores a `decimal` as TEXT, where `'900.00'` sorts before `'90.00'` and comparisons
+  are unreliable. An integer column keeps arithmetic exact and keeps ordering and range
+  filters correct in SQL. The domain still speaks `decimal` — a value converter sits between.
+- **Timestamps are stored as UTC ticks**, for the same reason: SQLite refuses to order by a
+  `DateTimeOffset` at all. Storing a `DateTime` instead would sort, but it comes back as
+  `DateTimeKind.Unspecified`, serialises without a `Z`, and is then read by the browser as
+  local time — a bug worth designing out rather than remembering.
+- **A deficit is a valid application, not a validation error.** An applicant whose expenses
+  exceed their income is describing the exact situation hardship assistance exists for.
+  Nothing in the stack rejects it, and there is a test that says so.
+- **`CreatedAt` and `UpdatedAt` are set in `SaveChanges`, not by callers.** The second write
+  path is the one that forgets. `CreatedAt` is explicitly held back from updates so it cannot
+  be rewritten. The clock is injected, so tests assert an exact instant rather than a
+  tolerance.
+- **No generic `IRepository<T>`.** A generic repository over EF Core mostly restates what
+  `DbSet` already is. The repository exposes named operations instead.
+- **Migrations run at start-up** so a fresh clone works with one command. That is the right
+  trade-off for a reviewer and the wrong one in production, where several instances starting
+  at once would race and a failed migration should fail the deployment rather than the app.
 - **The frontend's API types are generated from the API's OpenAPI document**, not
   hand-written, so the contract exists once. `npm run typecheck` in CI fails if a
   change to a DTO is not reflected at the call sites.

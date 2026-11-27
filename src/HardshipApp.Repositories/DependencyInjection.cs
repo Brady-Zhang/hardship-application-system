@@ -21,6 +21,8 @@ public static class DependencyInjection
 
         services.AddDbContext<HardshipDbContext>(options => options.UseSqlite(connectionString));
 
+        services.AddScoped<IHardshipApplicationRepository, HardshipApplicationRepository>();
+
         return services;
     }
 }

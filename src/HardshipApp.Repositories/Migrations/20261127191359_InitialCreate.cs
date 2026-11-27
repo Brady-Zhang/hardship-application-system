@@ -21,8 +21,8 @@ namespace HardshipApp.Repositories.Migrations
                     MonthlyIncome = table.Column<long>(type: "INTEGER", nullable: false),
                     MonthlyExpenses = table.Column<long>(type: "INTEGER", nullable: false),
                     HardshipReason = table.Column<string>(type: "TEXT", maxLength: 1000, nullable: true),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "TEXT", nullable: false),
-                    UpdatedAt = table.Column<DateTimeOffset>(type: "TEXT", nullable: true)
+                    CreatedAt = table.Column<long>(type: "INTEGER", nullable: false),
+                    UpdatedAt = table.Column<long>(type: "INTEGER", nullable: true)
                 },
                 constraints: table =>
                 {
