@@ -26,7 +26,7 @@ Nothing else — no Docker, no database server to install. See
 Two terminals.
 
 ```bash
-# 1. API — http://localhost:5180 (OpenAPI at /openapi/v1.json)
+# 1. API — http://localhost:5180
 dotnet run --project src/HardshipApp.Api
 ```
 
@@ -39,6 +39,12 @@ npm run dev
 
 Then open <http://localhost:5173>. The database file is created and migrated on the API's
 first start, so there is no setup step between cloning and using the application.
+
+To exercise the API on its own, open <http://localhost:5180/scalar> — an API reference that
+sends real requests from the browser, so there is no need for curl or a REST client. It is
+mapped in development only, next to the OpenAPI document it reads
+(<http://localhost:5180/openapi/v1.json>), so the page can never describe anything the API
+does not actually serve.
 
 The Vite dev server proxies `/api` to the API, so the browser only ever talks to
 one origin and CORS never enters the picture.
@@ -111,6 +117,9 @@ forget.
 The response carries `monthlySurplus` and `isInDeficit` alongside the figures they come from,
 so the number on screen is the one the server computed rather than one the browser worked
 out again.
+
+All four are listed in the [Scalar reference](#running-it) when the API is running, with a
+request builder next to each one.
 
 ## Type safety across the stack
 
@@ -280,6 +289,11 @@ Where the brief left room, this is what I decided and why.
 - **The frontend's API types are generated from the API's OpenAPI document**, not
   hand-written, so the contract exists once. See
   [type safety across the stack](#type-safety-across-the-stack).
+- **An API reference page (Scalar), in development only.** It reads the same OpenAPI
+  document the client's types come from, so there is one description of the API rather than
+  a second one to keep in step — and it sends real requests, which makes trying an endpoint
+  a click rather than a curl command. It is not mapped outside development: it is a tool for
+  whoever is working on the code, not a public page.
 - **A `decimal` is described as a plain JSON number.** ASP.NET's default schema for one is
   `["number", "string"]`, because the serialiser will *read* a decimal from a quoted string.
   It never writes one, so the union was inaccurate for every response and turned every money
