@@ -1,5 +1,6 @@
 import { Button, Stack, Typography } from '@mui/material'
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom'
+import { isNotFound } from '../../api/errors'
 import { LoadFailed, Loading } from '../../components/QueryStates'
 import { ApplicationForm } from './ApplicationForm'
 import { toFormValues } from './applicationSchema'
@@ -20,7 +21,10 @@ export function EditApplicationPage() {
       {application.isPending && <Loading label="Loading application" />}
 
       {application.isError && (
-        <LoadFailed error={application.error} onRetry={() => void application.refetch()} />
+        <LoadFailed
+          error={application.error}
+          onRetry={isNotFound(application.error) ? undefined : () => void application.refetch()}
+        />
       )}
 
       {/* The form is mounted only once the record has arrived, so it never renders empty and

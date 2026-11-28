@@ -4,3 +4,7 @@ import { ApiError } from './client'
 export function messageFor(error: unknown): string {
   return error instanceof ApiError ? error.message : 'Something went wrong. Please try again.'
 }
+
+export function isNotFound(error: unknown): boolean {
+  return error instanceof ApiError && error.status === 404
+}

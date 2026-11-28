@@ -1,5 +1,5 @@
 import { Alert, Box, Button, CircularProgress } from '@mui/material'
-import { messageFor } from '../api/messageFor'
+import { messageFor } from '../api/errors'
 
 export function Loading({ label }: { label: string }) {
   return (
@@ -9,14 +9,18 @@ export function Loading({ label }: { label: string }) {
   )
 }
 
-export function LoadFailed({ error, onRetry }: { error: unknown; onRetry: () => void }) {
+// Without an `onRetry` the message stands on its own: a record that does not exist will
+// not exist on the second try either.
+export function LoadFailed({ error, onRetry }: { error: unknown; onRetry?: () => void }) {
   return (
     <Alert
       severity="error"
       action={
-        <Button color="inherit" size="small" onClick={onRetry}>
-          Retry
-        </Button>
+        onRetry && (
+          <Button color="inherit" size="small" onClick={onRetry}>
+            Retry
+          </Button>
+        )
       }
     >
       {messageFor(error)}

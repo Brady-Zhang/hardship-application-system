@@ -68,5 +68,7 @@ describe('EditApplicationPage', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Application not found')
     expect(screen.queryByLabelText(/customer name/i)).not.toBeInTheDocument()
+    // Nothing to retry: the record is not coming back.
+    expect(screen.queryByRole('button', { name: /retry/i })).not.toBeInTheDocument()
   })
 })
