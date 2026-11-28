@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError, applicationsApi } from '../../api/client'
 import { anApplication } from '../../test/anApplication'
-import { renderWithProviders } from '../../test/renderWithProviders'
+import { aQueryClient, renderWithProviders } from '../../test/renderWithProviders'
 import { ApplicationsPage } from './ApplicationsPage'
 
 vi.mock('../../api/client', async (importOriginal) => ({
@@ -62,5 +62,21 @@ describe('ApplicationsPage', () => {
 
     expect(await screen.findByText('Jordan Lee')).toBeVisible()
     await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument())
+  })
+
+  it('keeps the rows it already has when a refresh fails', async () => {
+    const client = aQueryClient()
+    list.mockResolvedValueOnce([anApplication({ customerName: 'Jordan Lee' })])
+
+    renderWithProviders(<ApplicationsPage />, { client })
+
+    expect(await screen.findByText('Jordan Lee')).toBeVisible()
+
+    list.mockRejectedValue(new ApiError(0, 'Could not reach the server.'))
+    await client.refetchQueries()
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Could not reach the server.')
+    // The stale list is still more useful than an empty page.
+    expect(screen.getByText('Jordan Lee')).toBeVisible()
   })
 })

@@ -51,11 +51,11 @@ export function ApplicationsPage() {
         <LoadFailed error={applications.error} onRetry={() => void applications.refetch()} />
       )}
 
-      {applications.isSuccess && applications.data.length === 0 && (
+      {applications.data?.length === 0 && (
         <Alert severity="info">No applications yet. Submit the first one.</Alert>
       )}
 
-      {applications.isSuccess && applications.data.length > 0 && (
+      {applications.data !== undefined && applications.data.length > 0 && (
         <TableContainer component={Paper} variant="outlined">
           <Table size="small">
             <TableHead>
