@@ -6,13 +6,17 @@ A small full-stack application for recording and updating financial hardship
 applications: a React/TypeScript front end, an ASP.NET Core Web API, and a
 relational database.
 
-> **Status:** in progress. The API is complete and the form submits; the list and editing
-> arrive in the branches that follow.
+![The applications list](docs/screenshots/list.jpg)
+
+Submitting an application, editing one, and listing them all. The surplus is computed by the
+server, and a deficit is marked — in red, and in words for anyone who cannot see the colour.
+
+![The form, with validation](docs/screenshots/form-validation.jpg)
 
 ## Prerequisites
 
 - [.NET SDK 10](https://dotnet.microsoft.com/download) (`dotnet --version`)
-- [Node.js 22+](https://nodejs.org) (`node --version`)
+- [Node.js 22+](https://nodejs.org) (`node --version`) — CI runs 24
 
 Nothing else — no Docker, no database server to install. See
 [Design decisions](#design-decisions) for why.
@@ -33,6 +37,9 @@ npm install
 npm run dev
 ```
 
+Then open <http://localhost:5173>. The database file is created and migrated on the API's
+first start, so there is no setup step between cloning and using the application.
+
 The Vite dev server proxies `/api` to the API, so the browser only ever talks to
 one origin and CORS never enters the picture.
 
@@ -52,10 +59,18 @@ would have hidden that difference behind `*.Tests`.
 ```bash
 cd web
 npm run typecheck              # tsc, no emit
+npm run lint                   # oxlint
 npm test                       # Vitest + React Testing Library
 ```
 
-CI runs exactly these on every push and pull request.
+70 tests in total: 21 unit, 22 integration, 27 in the browser suite. CI runs all of them on
+every push and pull request.
+
+The test the brief asked for — **a hardship record can be successfully added** — is
+`Post_WithValidApplication_ReturnsCreatedAndPersistsRecord` in
+[`CreateApplicationTests`](tests/HardshipApp.IntegrationTests/Api/CreateApplicationTests.cs).
+It goes through the real HTTP pipeline and then reads the record back out of the database,
+rather than asserting on a mocked service.
 
 ## Project structure
 
@@ -70,8 +85,9 @@ tests/
   HardshipApp.IntegrationTests/ the API end to end, over a real database
 web/
   src/api/                    the generated contract and a typed client
-  src/components/form/        Formik-aware inputs built on MUI
-  src/features/applications/  the form, its schema and its data hooks
+  src/components/             the error boundary, query states, Formik-aware inputs
+  src/features/applications/  the list, the form, the edit page, their schema and data hooks
+  src/test/                   render helpers and fixtures
 ```
 
 The layering is enforced by project references rather than by convention:
@@ -140,7 +156,7 @@ the request failed business validation or could not be deserialised at all:
 ```
 
 That matters for the front end, which maps `errors` onto form fields and needs one contract
-rather than two. Two things are deliberate:
+rather than two. Four things are deliberate:
 
 - **Field names are normalised twice.** The JSON binder reports `$.dateOfBirth` and the
   validators report `DateOfBirth`, so the API answers `DateOfBirth` either way; the web
@@ -150,9 +166,26 @@ rather than two. Two things are deliberate:
   it failed to construct, which is an internal detail and no help to whoever filled in the
   form. It is replaced with a readable sentence, and there is a test asserting the response
   contains no internal names.
+- **The framework's own responses are problem details too** (`UseStatusCodePages`). An
+  unknown path or a route constraint that did not match is answered before any of our code
+  runs, and used to come back as a 404 with an empty body — which a client can only report
+  as "something went wrong".
+- **An unhandled exception** is logged in full and returned as a 500 problem details with
+  nothing specific in it. A test asserts the body carries no exception message, no type name
+  and no stack frames.
 
-An unhandled exception is logged in full and returned as a 500 problem details with nothing
-specific in it.
+In the browser, a failure lands in one of three places, depending on what the user can do
+about it:
+
+| | |
+|---|---|
+| a field the server rejected | on that field, via Formik's `setErrors` |
+| a failure belonging to no field | above the form, and the form keeps what was typed |
+| a page that could not load | in place, with Retry — except a 404, which will not change |
+
+A render that throws is caught by an error boundary rather than leaving a blank page. It is
+keyed by the path, so navigating away from a broken page is enough to recover. A list that
+fails to *refresh* keeps the rows it already has and shows the message above them.
 
 ## Data model
 
@@ -180,10 +213,33 @@ a status or an approval record would mean tables nothing in the brief writes to.
 listed under [what I would add for production](#what-id-add-for-production) instead, where
 they cost nothing to maintain.
 
+## Assumptions
+
+Where the brief left room, this is what I decided and why.
+
+- **Anyone can use it.** There is no login, and every caller sees every application. Adding
+  authentication without knowing who the users are — customers, or staff acting for them —
+  would have meant inventing a model rather than building one.
+- **An applicant is an adult.** Date of birth must be in the past and at least 18 years ago.
+  A hardship arrangement is a financial agreement, so this seemed safer than accepting any
+  past date.
+- **Income and expenses are monthly, in AUD, and may be zero.** The brief says "income" and
+  "expenses" without a period; the form labels say which, so nobody has to guess.
+- **Expenses above income are expected.** A deficit is the situation being reported, not a
+  mistake, so nothing rejects it — there is a test that says so.
+- **"Update" means replace.** `PUT` takes the whole record; there is no partial update,
+  because the form always holds every field anyway.
+- **Nothing is deleted.** The brief asks for create, update and list. A hardship application
+  is a record of something somebody said, so removing one looked like a decision for the
+  business rather than a gap to fill.
+- **The list is complete and unpaged**, newest first. See the production list below.
+
 ## Design decisions
 
-_Filled in as the implementation lands. Already settled:_
-
+- **SQLite, through EF Core.** The brief allows any relational database, and the provider is
+  one line in `AddPersistence`. SQLite means a reviewer needs no server, no container and no
+  connection string — `dotnet run` and the database is there. Nothing in the data access is
+  SQLite-specific beyond the two converters below.
 - **Money is stored as a whole number of cents.** SQLite has no decimal type; left alone,
   EF Core stores a `decimal` as TEXT, where `'900.00'` sorts before `'90.00'` and comparisons
   are unreliable. An integer column keeps arithmetic exact and keeps ordering and range
@@ -201,13 +257,21 @@ _Filled in as the implementation lands. Already settled:_
   tolerance.
 - **MUI, with the stock theme.** The brief invited a pre-styled component library and asked
   to keep it simple, so there is no custom theme, no layout chrome and no icon set — just the
-  components the form needs.
+  components the screens need.
+- **One form component for create and edit.** They differ by initial values and a button
+  label. The edit page mounts it only once the record has arrived, so it never renders empty
+  and then fills itself in — the usual way an edit form ends up permanently blank —
+  and `enableReinitialize` covers the values changing underneath it after a save.
 - **Form values are held as strings and converted on submit.** A number input bound to a
   numeric field carries `NaN` the moment it is cleared, and the date input hands back the
   `yyyy-MM-dd` string the API already wants.
 - **Validation is written twice, on purpose.** Yup in the browser so the form answers
   immediately, FluentValidation on the server because the browser's copy is advice, not
   enforcement. The server's answer is mapped back onto the individual fields.
+- **Server state lives in React Query, and there is no store.** Everything on screen is a
+  copy of something the API owns; a store would be a second copy to keep in step. The one
+  piece of client state — the "saved" message — travels in the history entry, so it cannot
+  outlive the navigation that caused it.
 - **No generic `IRepository<T>`.** A generic repository over EF Core mostly restates what
   `DbSet` already is. The repository exposes named operations instead.
 - **Migrations run at start-up** so a fresh clone works with one command. That is the right
@@ -237,10 +301,15 @@ Out of scope for the brief, and left out on purpose rather than forgotten.
   financial data; nothing here is behind a login.
 - **An audit trail** — who changed what, and when. `UpdatedAt` says a record changed, not who
   changed it or what it said before, which is not enough in a regulated setting.
+- **A server-backed database** — SQL Server, say — once more than one instance needs to write
+  at a time. The provider changes in one place; the two value converters would be dropped.
 - **A separate applicant entity**, once there is a stable identifier to match people by, so
   one person's repeat applications hang together.
 - **A status and an approval record**, once there is a decision step for them to describe.
 - **Optimistic concurrency** (`rowversion`), since two staff can open the same application.
 - **Pagination** on the list endpoint. It returns everything today, which is fine for a
   handful of records and not fine later.
+- **Structured logging and tracing** to somewhere a person reads. Failures are logged with
+  the trace id that the problem details already return, which only helps if the logs are
+  searchable.
 - **Migrations as a deployment step** rather than at start-up.
