@@ -11,8 +11,6 @@ relational database.
 Submitting an application, editing one, and listing them all. The surplus is computed by the
 server, and a deficit is marked — in red, and in words for anyone who cannot see the colour.
 
-![The form, with validation](docs/screenshots/form-validation.jpg)
-
 ## Prerequisites
 
 - [.NET SDK 10](https://dotnet.microsoft.com/download) (`dotnet --version`)
