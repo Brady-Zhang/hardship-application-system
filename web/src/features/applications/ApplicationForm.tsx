@@ -1,4 +1,4 @@
-import { Alert, Box, Button, Stack } from '@mui/material'
+import { Alert, Box, Stack } from '@mui/material'
 import { Form, Formik, type FormikHelpers } from 'formik'
 import { ApiError, type HardshipApplicationRequest } from '../../api/client'
 import { FormTextField } from '../../components/form/FormTextField'
@@ -9,8 +9,9 @@ import {
 } from './applicationSchema'
 
 type Props = {
+  /** The dialog's submit button lives outside the form and finds it by this id. */
+  id: string
   initialValues: ApplicationFormValues
-  submitLabel: string
   onSubmit: (request: HardshipApplicationRequest) => Promise<unknown>
 }
 
@@ -41,7 +42,7 @@ function splitServerErrors(error: ApiError) {
   return { onFields, elsewhere }
 }
 
-export function ApplicationForm({ initialValues, submitLabel, onSubmit }: Props) {
+export function ApplicationForm({ id, initialValues, onSubmit }: Props) {
   async function submit(
     values: ApplicationFormValues,
     helpers: FormikHelpers<ApplicationFormValues>,
@@ -78,9 +79,9 @@ export function ApplicationForm({ initialValues, submitLabel, onSubmit }: Props)
       enableReinitialize
       onSubmit={submit}
     >
-      {({ isSubmitting, status }) => (
-        <Form noValidate>
-          <Stack spacing={2} sx={{ maxWidth: 520 }}>
+      {({ status }) => (
+        <Form id={id} noValidate>
+          <Stack spacing={2}>
             {typeof status === 'string' && <Alert severity="error">{status}</Alert>}
 
             <FormTextField name="customerName" label="Customer name" required />
@@ -118,12 +119,6 @@ export function ApplicationForm({ initialValues, submitLabel, onSubmit }: Props)
               minRows={3}
               hint="Optional."
             />
-
-            <Box>
-              <Button type="submit" variant="contained" disabled={isSubmitting}>
-                {isSubmitting ? 'Saving…' : submitLabel}
-              </Button>
-            </Box>
           </Stack>
         </Form>
       )}

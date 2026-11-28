@@ -5,13 +5,17 @@ import { ApiError, type HardshipApplicationRequest } from '../../api/client'
 import { ApplicationForm } from './ApplicationForm'
 import { emptyApplication } from './applicationSchema'
 
+// The real submit button lives in the dialog's actions, outside the form, and reaches it
+// through the HTML `form` attribute. The harness mirrors that rather than inventing a
+// button the application does not have.
 function renderForm(onSubmit: (request: HardshipApplicationRequest) => Promise<unknown>) {
   return render(
-    <ApplicationForm
-      initialValues={emptyApplication}
-      submitLabel="Submit application"
-      onSubmit={onSubmit}
-    />,
+    <>
+      <ApplicationForm id="test-form" initialValues={emptyApplication} onSubmit={onSubmit} />
+      <button type="submit" form="test-form">
+        Submit application
+      </button>
+    </>,
   )
 }
 

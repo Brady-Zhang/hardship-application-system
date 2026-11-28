@@ -67,7 +67,7 @@ npm run lint                   # oxlint
 npm test                       # Vitest + React Testing Library
 ```
 
-70 tests in total: 21 unit, 22 integration, 27 in the browser suite. CI runs all of them on
+73 tests in total: 21 unit, 22 integration, 30 in the browser suite. CI runs all of them on
 every push and pull request.
 
 The test the brief asked for — **a hardship record can be successfully added** — is
@@ -89,8 +89,8 @@ tests/
   HardshipApp.IntegrationTests/ the API end to end, over a real database
 web/
   src/api/                    the generated contract and a typed client
-  src/components/             the error boundary, query states, Formik-aware inputs
-  src/features/applications/  the list, the form, the edit page, their schema and data hooks
+  src/components/             the dialog shell, the error boundary, query states, inputs
+  src/features/applications/  the list, the two form dialogs, their schema and data hooks
   src/test/                   render helpers and fixtures
 ```
 
@@ -266,9 +266,18 @@ Where the brief left room, this is what I decided and why.
   to keep it simple, so there is no custom theme, no layout chrome and no icon set — just the
   components the screens need.
 - **One form component for create and edit.** They differ by initial values and a button
-  label. The edit page mounts it only once the record has arrived, so it never renders empty
-  and then fills itself in — the usual way an edit form ends up permanently blank —
+  label. The edit dialog mounts it only once the record has arrived, so it never renders
+  empty and then fills itself in — the usual way an edit form ends up permanently blank —
   and `enableReinitialize` covers the values changing underneath it after a save.
+- **Both forms are dialogs, and both are still routes.** `/applications/new` and
+  `/applications/:id/edit` render over the list rather than replacing it, so the surrounding
+  records stay in view while someone types. Keeping them as routes rather than a piece of
+  component state is what makes a link to an application shareable, and makes Escape, Cancel
+  and the browser's Back button all mean the same thing: go back to the list.
+- **The dialog's buttons sit outside the form.** They are in `DialogActions`, pinned to the
+  bottom, and reach the form through the HTML `form` attribute — the pattern MUI documents —
+  so they cannot scroll out of reach on a short screen. Their disabled state comes from the
+  mutation's own `isPending` rather than a second copy of "is it saving".
 - **Form values are held as strings and converted on submit.** A number input bound to a
   numeric field carries `NaN` the moment it is cleared, and the date input hands back the
   `yyyy-MM-dd` string the API already wants.

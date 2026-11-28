@@ -1,23 +1,30 @@
-import { Button, Stack, Typography } from '@mui/material'
-import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { isNotFound } from '../../api/errors'
+import { FormDialog } from '../../components/FormDialog'
 import { LoadFailed, Loading } from '../../components/QueryStates'
 import { ApplicationForm } from './ApplicationForm'
 import { toFormValues } from './applicationSchema'
 import { useApplication, useUpdateApplication } from './useApplications'
 
-export function EditApplicationPage() {
+const FORM_ID = 'edit-application-form'
+
+export function EditApplicationDialog() {
   const { id = '' } = useParams<{ id: string }>()
   const application = useApplication(id)
   const updateApplication = useUpdateApplication(id)
   const navigate = useNavigate()
 
   return (
-    <Stack spacing={2} sx={{ alignItems: 'flex-start' }}>
-      <Typography variant="h5" component="h2">
-        Edit application
-      </Typography>
-
+    <FormDialog
+      title="Edit application"
+      onClose={() => navigate('/')}
+      // No submit button until there is something to submit.
+      form={
+        application.isSuccess
+          ? { id: FORM_ID, submitLabel: 'Save changes', saving: updateApplication.isPending }
+          : undefined
+      }
+    >
       {application.isPending && <Loading label="Loading application" />}
 
       {application.isError && (
@@ -31,18 +38,14 @@ export function EditApplicationPage() {
           then fills itself in. `enableReinitialize` still matters: saving replaces the values. */}
       {application.isSuccess && (
         <ApplicationForm
+          id={FORM_ID}
           initialValues={toFormValues(application.data)}
-          submitLabel="Save changes"
           onSubmit={async (request) => {
             const updated = await updateApplication.mutateAsync(request)
             navigate('/', { state: { flash: `Changes saved for ${updated.customerName}` } })
           }}
         />
       )}
-
-      <Button component={RouterLink} to="/">
-        Back to applications
-      </Button>
-    </Stack>
+    </FormDialog>
   )
 }
