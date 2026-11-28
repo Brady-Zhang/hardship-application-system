@@ -1,9 +1,9 @@
 import { Alert, Button, Container, Link, Stack, Typography } from '@mui/material'
-import { Link as RouterLink, Route, Routes, useLocation } from 'react-router-dom'
+import { Link as RouterLink, Outlet, Route, Routes, useLocation } from 'react-router-dom'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { ApplicationsPage } from './features/applications/ApplicationsPage'
-import { EditApplicationPage } from './features/applications/EditApplicationPage'
-import { NewApplicationPage } from './features/applications/NewApplicationPage'
+import { EditApplicationDialog } from './features/applications/EditApplicationDialog'
+import { NewApplicationDialog } from './features/applications/NewApplicationDialog'
 
 function NotFound() {
   return (
@@ -13,6 +13,16 @@ function NotFound() {
         Back to applications
       </Button>
     </Stack>
+  )
+}
+
+/** The list is the screen; the form routes open over it, so closing one reveals it again. */
+function ApplicationsScreen() {
+  return (
+    <>
+      <ApplicationsPage />
+      <Outlet />
+    </>
   )
 }
 
@@ -31,9 +41,12 @@ export default function App() {
           mounts a fresh boundary rather than keeping the failure on screen. */}
       <ErrorBoundary key={location.pathname}>
         <Routes>
-          <Route path="/" element={<ApplicationsPage />} />
-          <Route path="/applications/new" element={<NewApplicationPage />} />
-          <Route path="/applications/:id/edit" element={<EditApplicationPage />} />
+          <Route element={<ApplicationsScreen />}>
+            <Route path="/" element={null} />
+            <Route path="/applications/new" element={<NewApplicationDialog />} />
+            <Route path="/applications/:id/edit" element={<EditApplicationDialog />} />
+          </Route>
+
           <Route path="*" element={<NotFound />} />
         </Routes>
       </ErrorBoundary>
