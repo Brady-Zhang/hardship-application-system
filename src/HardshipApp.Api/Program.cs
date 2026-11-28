@@ -5,6 +5,7 @@ using HardshipApp.Api.Validation;
 using HardshipApp.Repositories;
 using HardshipApp.Services;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Scalar.AspNetCore;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -12,7 +13,18 @@ builder.Services
     .AddControllers(options => options.Filters.Add<ValidationFilter>())
     .ConfigureApiBehaviorOptions(options =>
         options.InvalidModelStateResponseFactory = ModelBindingProblems.ToProblem);
-builder.Services.AddOpenApi(options => options.AddSchemaTransformer<DecimalSchemaTransformer>());
+builder.Services.AddOpenApi(options =>
+{
+    options.AddSchemaTransformer<DecimalSchemaTransformer>();
+
+    // The assembly name is not a title. This is what the reference page and anyone reading
+    // the document see.
+    options.AddDocumentTransformer((document, _, _) =>
+    {
+        document.Info.Title = "Hardship Application API";
+        return Task.CompletedTask;
+    });
+});
 
 builder.Services.AddProblemDetails();
 builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
@@ -37,6 +49,11 @@ app.UseStatusCodePages();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+
+    // An API reference to read and to call the endpoints from, served off the same document
+    // the client's types are generated from. Development only: it is a tool for whoever is
+    // working on this, not a public page.
+    app.MapScalarApiReference(options => options.WithTitle("Hardship Application API"));
 }
 else
 {
