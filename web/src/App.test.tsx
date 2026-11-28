@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
@@ -23,17 +23,25 @@ describe('App', () => {
 
     expect(screen.getByRole('heading', { name: 'Hardship applications' })).toBeVisible()
     expect(await screen.findByRole('heading', { name: 'Applications' })).toBeVisible()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
-  it('goes to the form from the list', async () => {
+  it('opens the form in a dialog over the list, and closes it again', async () => {
     const user = userEvent.setup()
     renderWithProviders(<App />)
 
     await user.click(await screen.findByRole('link', { name: /new application/i }))
 
-    expect(screen.getByRole('heading', { name: /new hardship application/i })).toBeVisible()
+    expect(await screen.findByRole('dialog')).toBeVisible()
     expect(screen.getByLabelText(/customer name/i)).toBeVisible()
-    expect(screen.getByRole('button', { name: /submit application/i })).toBeVisible()
+    // A modal hides the rest of the app from assistive tech, so the list is no longer
+    // reachable by role while the dialog is open — but it is still mounted behind it.
+    expect(screen.getByText('Applications')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /cancel/i }))
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(screen.getByRole('heading', { name: 'Applications' })).toBeVisible()
   })
 
   it('has somewhere to go from an unknown address', async () => {
