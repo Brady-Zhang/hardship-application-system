@@ -334,3 +334,33 @@ Out of scope for the brief, and left out on purpose rather than forgotten.
   the trace id that the problem details already return, which only helps if the logs are
   searchable.
 - **Migrations as a deployment step** rather than at start-up.
+
+## Troubleshooting
+
+**The page says "Could not reach the server."**
+
+The API is not running, or not on the port the dev server proxies to. Start it with
+`dotnet run --project src/HardshipApp.Api` and check <http://localhost:5180/api/applications>
+answers. In development the request goes through the Vite proxy, which replies 502 when
+nothing is listening — the page says so rather than showing a bare status code.
+
+**Port 5180 is already in use.**
+
+Something else on the machine has it. Change it in two places, which have to agree:
+`src/HardshipApp.Api/Properties/launchSettings.json` (`applicationUrl`) and
+`web/vite.config.ts` (the proxy `target`).
+
+**CI fails on "API types are in step with the API".**
+
+A DTO changed and the generated contract was not regenerated. Run both, and commit both
+files:
+
+```bash
+dotnet build src/HardshipApp.Api     # rewrites openapi/HardshipApp.Api.json
+cd web && npm run api:types          # rewrites src/api/schema.d.ts
+```
+
+**Starting over with an empty database.**
+
+Stop the API, delete `src/HardshipApp.Api/hardship.db`, and start it again — the migrations
+run at start-up and recreate it. There is no `dotnet ef database update` step.
