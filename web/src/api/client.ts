@@ -39,7 +39,16 @@ function toFieldErrors(errors: ValidationProblemDetails['errors']): FieldErrors 
   )
 }
 
+// A gateway status means the request never reached the API — in development that is the
+// Vite proxy answering, in a deployment it is whatever sits in front. Either way the user's
+// situation is "the server is not there", not "something went wrong".
+const GATEWAY_STATUSES = [502, 503, 504]
+
 function toMessage(problem: ProblemDetails | null, status: number): string {
+  if (GATEWAY_STATUSES.includes(status)) {
+    return UNREACHABLE
+  }
+
   return problem?.detail ?? problem?.title ?? `${UNEXPECTED} (${status})`
 }
 

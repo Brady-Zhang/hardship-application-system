@@ -6,7 +6,8 @@ A small full-stack application for recording and updating financial hardship
 applications: a React/TypeScript front end, an ASP.NET Core Web API, and a
 relational database.
 
-> **Status:** in progress. The API is complete; the UI arrives in the branches that follow.
+> **Status:** in progress. The API is complete and the form submits; the list and editing
+> arrive in the branches that follow.
 
 ## Prerequisites
 
@@ -67,7 +68,10 @@ src/
 tests/
   HardshipApp.UnitTests/        business rules, validators, mapping — no I/O
   HardshipApp.IntegrationTests/ the API end to end, over a real database
-web/                          React + TypeScript (Vite)
+web/
+  src/api/                    the generated contract and a typed client
+  src/components/form/        Formik-aware inputs built on MUI
+  src/features/applications/  the form, its schema and its data hooks
 ```
 
 The layering is enforced by project references rather than by convention:
@@ -195,6 +199,15 @@ _Filled in as the implementation lands. Already settled:_
   path is the one that forgets. `CreatedAt` is explicitly held back from updates so it cannot
   be rewritten. The clock is injected, so tests assert an exact instant rather than a
   tolerance.
+- **MUI, with the stock theme.** The brief invited a pre-styled component library and asked
+  to keep it simple, so there is no custom theme, no layout chrome and no icon set — just the
+  components the form needs.
+- **Form values are held as strings and converted on submit.** A number input bound to a
+  numeric field carries `NaN` the moment it is cleared, and the date input hands back the
+  `yyyy-MM-dd` string the API already wants.
+- **Validation is written twice, on purpose.** Yup in the browser so the form answers
+  immediately, FluentValidation on the server because the browser's copy is advice, not
+  enforcement. The server's answer is mapped back onto the individual fields.
 - **No generic `IRepository<T>`.** A generic repository over EF Core mostly restates what
   `DbSet` already is. The repository exposes named operations instead.
 - **Migrations run at start-up** so a fresh clone works with one command. That is the right
