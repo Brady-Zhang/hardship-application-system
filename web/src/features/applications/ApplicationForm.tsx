@@ -80,7 +80,7 @@ export function ApplicationForm({ initialValues, submitLabel, onSubmit }: Props)
     >
       {({ isSubmitting, status }) => (
         <Form noValidate>
-          <Stack spacing={2}>
+          <Stack spacing={2} sx={{ maxWidth: 520 }}>
             {typeof status === 'string' && <Alert severity="error">{status}</Alert>}
 
             <FormTextField name="customerName" label="Customer name" required />
