@@ -3,13 +3,17 @@ import { render, type RenderResult } from '@testing-library/react'
 import type { ReactElement, ReactNode } from 'react'
 import { MemoryRouter } from 'react-router-dom'
 
-export function renderWithProviders(
-  ui: ReactElement,
-  { route = '/' }: { route?: string } = {},
-): RenderResult {
-  const queryClient = new QueryClient({
+export function aQueryClient(): QueryClient {
+  return new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   })
+}
+
+export function renderWithProviders(
+  ui: ReactElement,
+  { route = '/', client }: { route?: string; client?: QueryClient } = {},
+): RenderResult {
+  const queryClient = client ?? aQueryClient()
 
   function Wrapper({ children }: { children: ReactNode }) {
     return (

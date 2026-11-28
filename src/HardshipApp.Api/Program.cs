@@ -29,6 +29,11 @@ WebApplication app = builder.Build();
 
 app.UseExceptionHandler();
 
+// Routing and the framework answer some requests before any of our code runs — an unknown
+// path, a route constraint that did not match. Without this they come back with an empty
+// body, and a client that expects problem details has nothing to read.
+app.UseStatusCodePages();
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
