@@ -1,5 +1,5 @@
 import * as Yup from 'yup'
-import type { HardshipApplicationRequest } from '../../api/client'
+import type { HardshipApplication, HardshipApplicationRequest } from '../../api/client'
 
 /**
  * Every field is held as a string.
@@ -94,5 +94,16 @@ export function toRequest(values: ApplicationFormValues): HardshipApplicationReq
     monthlyIncome: Number(values.monthlyIncome),
     monthlyExpenses: Number(values.monthlyExpenses),
     hardshipReason: values.hardshipReason.trim() === '' ? null : values.hardshipReason.trim(),
+  }
+}
+
+/** The record as the API returns it, back into the strings the form holds. */
+export function toFormValues(application: HardshipApplication): ApplicationFormValues {
+  return {
+    customerName: application.customerName,
+    dateOfBirth: application.dateOfBirth,
+    monthlyIncome: String(application.monthlyIncome),
+    monthlyExpenses: String(application.monthlyExpenses),
+    hardshipReason: application.hardshipReason ?? '',
   }
 }
